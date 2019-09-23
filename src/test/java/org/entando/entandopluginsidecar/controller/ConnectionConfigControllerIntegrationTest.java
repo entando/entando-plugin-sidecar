@@ -7,12 +7,13 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
+import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -34,12 +35,17 @@ public class ConnectionConfigControllerIntegrationTest {
     private TestRestTemplate testRestTemplate;
 
     @Autowired
+    @Value("${entando.plugin.name}")
+    private String entandoPluginName;
+
+    @Autowired
     private KubernetesClient client;
 
     @Test
-    public void shouldAddConnectionConfig() {
+    public void shouldAddConnectionConfig() throws Exception {
         // Given
-        ConnectionConfigDto configDto = getRandomConnectionConfigDto();
+        TestHelper.createEntandoPlugin(client, entandoPluginName);
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
 
         // When
         HttpEntity<ConnectionConfigDto> request = new HttpEntity<>(configDto, null);
@@ -58,9 +64,10 @@ public class ConnectionConfigControllerIntegrationTest {
     }
 
     @Test
-    public void shouldReadConnectionConfigByName() {
+    public void shouldReadConnectionConfigByName() throws Exception {
         // Given
-        ConnectionConfigDto configDto = getRandomConnectionConfigDto();
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto.getName());
         client.secrets().createNew()
                 .withApiVersion(API_VERSION)
                 .withNewMetadata().withName(configDto.getName()).endMetadata()
@@ -82,11 +89,13 @@ public class ConnectionConfigControllerIntegrationTest {
     }
 
     @Test
-    public void shouldReadAllConnectionConfigs() {
+    public void shouldReadAllConnectionConfigs() throws Exception {
         // Given
-        ConnectionConfigDto configDto1 = getRandomConnectionConfigDto();
-        ConnectionConfigDto configDto2 = getRandomConnectionConfigDto();
-        ConnectionConfigDto configDto3 = getRandomConnectionConfigDto();
+        ConnectionConfigDto configDto1 = TestHelper.getRandomConnectionConfigDto();
+        ConnectionConfigDto configDto2 = TestHelper.getRandomConnectionConfigDto();
+        ConnectionConfigDto configDto3 = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto1.getName(),
+                configDto2.getName(), configDto3.getName());
         client.secrets().createNew()
                 .withApiVersion(API_VERSION)
                 .withNewMetadata().withName(configDto1.getName()).endMetadata()
@@ -112,15 +121,5 @@ public class ConnectionConfigControllerIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         List<ConnectionConfigDto> responseBody = response.getBody();
         assertThat(responseBody).contains(configDto1, configDto2, configDto3);
-    }
-
-    private ConnectionConfigDto getRandomConnectionConfigDto() {
-        return ConnectionConfigDto.builder()
-                .url(RandomStringUtils.randomAlphabetic(100))
-                .name(RandomStringUtils.randomAlphabetic(20).toLowerCase())
-                .username(RandomStringUtils.randomAlphabetic(20))
-                .password(RandomStringUtils.randomAlphabetic(20))
-                .serviceType(RandomStringUtils.randomAlphabetic(20))
-                .build();
     }
 }
