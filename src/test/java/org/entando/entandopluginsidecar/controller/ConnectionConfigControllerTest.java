@@ -1,12 +1,15 @@
 package org.entando.entandopluginsidecar.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.service.ConnectionConfigService;
 import org.entando.entandopluginsidecar.util.TestHelper;
@@ -42,6 +45,18 @@ public class ConnectionConfigControllerTest {
 
         mvc.perform(post("/config").contentType(APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(configDto)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", containsString("plugin not found")));
+    }
+
+    @Test
+    public void shouldReturnErrorForKubernetesException() throws Exception {
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        doThrow(KubernetesClientException.class).when(connectionConfigService)
+                .addConnectionConfig(any());
+
+        mvc.perform(post("/config").contentType(APPLICATION_JSON_UTF8)
+                .content(objectMapper.writeValueAsString(configDto)))
+                .andExpect(status().is5xxServerError());
     }
 }
