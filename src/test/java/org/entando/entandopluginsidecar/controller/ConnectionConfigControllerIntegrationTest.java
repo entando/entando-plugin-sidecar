@@ -96,21 +96,9 @@ public class ConnectionConfigControllerIntegrationTest {
         ConnectionConfigDto configDto3 = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto1.getName(),
                 configDto2.getName(), configDto3.getName());
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto1.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto1)))
-                .done();
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto2.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto2)))
-                .done();
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto3.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto3)))
-                .done();
+        TestHelper.createSecret(client, configDto1);
+        TestHelper.createSecret(client, configDto2);
+        TestHelper.createSecret(client, configDto3);
 
         // When
         ResponseEntity<List<ConnectionConfigDto>> response = testRestTemplate.exchange("/config",

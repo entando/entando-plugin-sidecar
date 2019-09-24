@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -23,10 +24,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class ConnectionConfigService {
 
-    private static final String API_VERSION = "v1";
-    private static final String CONFIG_YAML = "config.yaml";
+    public static final String API_VERSION = "v1";
+    public static final String CONFIG_YAML = "config.yaml";
     private static final String OPAQUE_TYPE = "Opaque";
-    private static final String PLUGIN_CRD_NAME = "entandoplugins.entando.org";
 
     public static final String ERROR_PLUGIN_NOT_FOUND = "org.entando.error.plugin.notFound";
 
@@ -83,13 +83,13 @@ public class ConnectionConfigService {
         }
         if (secret.getData() != null && secret.getData().get(CONFIG_YAML) != null) {
             byte[] decodedBytes = Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML));
-            return Optional.of(YamlUtils.fromYaml(new String(decodedBytes)));
+            return Optional.of(YamlUtils.fromYaml(new String(decodedBytes, StandardCharsets.UTF_8)));
         }
         return Optional.empty();
     }
 
     private Resource<EntandoPlugin, DoneableEntandoPlugin> entandoPlugin() {
-        CustomResourceDefinition definition = client.customResourceDefinitions().withName(PLUGIN_CRD_NAME).get();
+        CustomResourceDefinition definition = client.customResourceDefinitions().withName(EntandoPlugin.CRD_NAME).get();
         if (definition == null) {
             throw new NotFoundException(ERROR_PLUGIN_NOT_FOUND);
         }

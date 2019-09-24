@@ -1,5 +1,8 @@
 package org.entando.entandopluginsidecar.util;
 
+import static org.entando.entandopluginsidecar.service.ConnectionConfigService.API_VERSION;
+import static org.entando.entandopluginsidecar.service.ConnectionConfigService.CONFIG_YAML;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
@@ -7,6 +10,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -21,8 +25,6 @@ import org.springframework.core.io.ClassPathResource;
 
 @UtilityClass
 public class TestHelper {
-
-    private static final String PLUGIN_CRD_NAME = "entandoplugins.entando.org";
 
     public static void createEntandoPlugin(KubernetesClient client, String pluginName) throws IOException {
         createEntandoPluginWithConfigNames(client, pluginName);
@@ -68,7 +70,7 @@ public class TestHelper {
 
     public static CustomResourceDefinition getEntandoPluginCrd(KubernetesClient client) {
         return client.customResourceDefinitions()
-                .withName(PLUGIN_CRD_NAME).get();
+                .withName(EntandoPlugin.CRD_NAME).get();
     }
 
     public static ConnectionConfigDto getRandomConnectionConfigDto() {
@@ -82,7 +84,8 @@ public class TestHelper {
     }
 
     public static CustomResourceDefinition createEntandoPluginCrd(KubernetesClient client) throws IOException {
-        CustomResourceDefinition entandoPluginCrd = client.customResourceDefinitions().withName(PLUGIN_CRD_NAME).get();
+        CustomResourceDefinition entandoPluginCrd = client.customResourceDefinitions().withName(EntandoPlugin.CRD_NAME)
+                .get();
         if (entandoPluginCrd == null) {
             List<HasMetadata> list = client.load(new ClassPathResource("crd/EntandoPluginCRD.yaml").getInputStream())
                     .get();
@@ -92,5 +95,13 @@ public class TestHelper {
             return client.customResourceDefinitions().createOrReplace(entandoPluginCrd);
         }
         return entandoPluginCrd;
+    }
+
+    public static void createSecret(KubernetesClient client, ConnectionConfigDto configDto) {
+        client.secrets().createNew()
+                .withApiVersion(API_VERSION)
+                .withNewMetadata().withName(configDto.getName()).endMetadata()
+                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto)))
+                .done();
     }
 }

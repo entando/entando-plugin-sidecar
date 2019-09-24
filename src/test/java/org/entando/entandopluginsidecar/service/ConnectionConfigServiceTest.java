@@ -7,7 +7,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Java6JUnitSoftAssertions;
@@ -25,8 +24,6 @@ import org.junit.rules.ExpectedException;
 
 public class ConnectionConfigServiceTest {
 
-    private static final String CONFIG_YAML = "config.yaml";
-    private static final String API_VERSION = "v1";
     private static final String ENTANDO_PLUGIN_NAME = "testplugin";
 
     @Rule
@@ -62,7 +59,7 @@ public class ConnectionConfigServiceTest {
         Secret secret = client.secrets().withName(configDto.getName()).get();
         safely.assertThat(secret.getMetadata().getName()).isEqualTo(configDto.getName());
         ConnectionConfigDto fromYaml = YamlUtils
-                .fromYaml(secret.getStringData().get(CONFIG_YAML));
+                .fromYaml(secret.getStringData().get(ConnectionConfigService.CONFIG_YAML));
         safely.assertThat(fromYaml.getUrl()).isEqualTo(configDto.getUrl());
         safely.assertThat(fromYaml.getUsername()).isEqualTo(configDto.getUsername());
         safely.assertThat(fromYaml.getPassword()).isEqualTo(configDto.getPassword());
@@ -74,12 +71,8 @@ public class ConnectionConfigServiceTest {
     @Test
     public void shouldGetConnectionConfigByName() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createSecret(client, configDto);
         TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto)))
-                .done();
 
         Optional<ConnectionConfigDto> configFromService = connectionConfigService
                 .getConnectionConfig(configDto.getName());
@@ -99,11 +92,7 @@ public class ConnectionConfigServiceTest {
         // Given
         TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto)))
-                .done();
+        TestHelper.createSecret(client, configDto);
 
         // When
         Optional<ConnectionConfigDto> connectionConfig = connectionConfigService
@@ -119,21 +108,9 @@ public class ConnectionConfigServiceTest {
         ConnectionConfigDto configDto1 = TestHelper.getRandomConnectionConfigDto();
         ConnectionConfigDto configDto2 = TestHelper.getRandomConnectionConfigDto();
         ConnectionConfigDto configDto3 = TestHelper.getRandomConnectionConfigDto();
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto1.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto1)))
-                .done();
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto2.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto2)))
-                .done();
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto3.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto3)))
-                .done();
+        TestHelper.createSecret(client, configDto1);
+        TestHelper.createSecret(client, configDto2);
+        TestHelper.createSecret(client, configDto3);
         TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto1.getName(),
                 configDto2.getName());
 
