@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.entando</groupId>
     <artifactId>entando-plugin-sidecar</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
     <name>entando-plugin-sidecar</name>
     <description>Sidecar for Entando plugins</description>
 
