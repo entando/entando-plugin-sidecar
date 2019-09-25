@@ -20,11 +20,17 @@ import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
 import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
+import org.entando.kubernetes.model.plugin.EntandoPluginSpecBuilder;
 import org.entando.kubernetes.model.plugin.PluginSecurityLevel;
 import org.springframework.core.io.ClassPathResource;
 
 @UtilityClass
 public class TestHelper {
+
+    public static final String CONFIG_ENDPOINT = "/config";
+    public static final String RESOURCE = "entando-sidecar";
+    public static final String KEYCLOAK_USER = "keycloak-user";
+    public static final String WRONG_ROLE = "wrong-role";
 
     public static void createEntandoPlugin(KubernetesClient client, String pluginName) throws IOException {
         createEntandoPluginWithConfigNames(client, pluginName);
@@ -33,7 +39,7 @@ public class TestHelper {
     public static void createEntandoPluginWithConfigNames(KubernetesClient client, String pluginName,
             String... configNames) throws IOException {
 
-        EntandoPluginSpec spec = new EntandoPluginSpec.EntandoPluginSpecBuilder()
+        EntandoPluginSpec spec = new EntandoPluginSpecBuilder<>()
                 .withImage("entando/entando-avatar-plugin")
                 .withDbms(DbmsImageVendor.POSTGRESQL)
                 .withReplicas(1)

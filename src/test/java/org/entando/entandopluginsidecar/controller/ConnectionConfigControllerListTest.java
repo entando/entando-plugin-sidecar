@@ -1,6 +1,10 @@
 package org.entando.entandopluginsidecar.controller;
 
 import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_LIST;
+import static org.entando.entandopluginsidecar.util.TestHelper.CONFIG_ENDPOINT;
+import static org.entando.entandopluginsidecar.util.TestHelper.KEYCLOAK_USER;
+import static org.entando.entandopluginsidecar.util.TestHelper.RESOURCE;
+import static org.entando.entandopluginsidecar.util.TestHelper.WRONG_ROLE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
@@ -28,11 +32,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ConnectionConfigControllerListTest {
-
-    private static final String CONFIG_ENDPOINT = "/config";
-    private static final String RESOURCE = "entando-sidecar";
-    private static final String KEYCLOAK_USER = "keycloak-user";
-    private static final String WRONG_ROLE = "wrong-role";
 
     @Autowired
     private MockMvc mvc;
