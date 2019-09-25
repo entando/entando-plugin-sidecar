@@ -22,10 +22,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = "keycloak.enabled=false")
 public class ConnectionConfigControllerIntegrationTest {
 
     private static final String CONFIG_YAML = "config.yaml";
@@ -52,7 +54,7 @@ public class ConnectionConfigControllerIntegrationTest {
         ResponseEntity<Void> response = testRestTemplate.postForEntity("/config", request, Void.class);
 
         // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Secret secret = client.secrets().withName(configDto.getName()).get();
         assertThat(secret).isNotNull();
         byte[] decodedBytes = Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML));

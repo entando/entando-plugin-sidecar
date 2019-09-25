@@ -105,6 +105,13 @@
             <artifactId>entando-k8s-custom-model</artifactId>
             <version>6.0.0-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.entando</groupId>
+            <artifactId>keycloak-connector-testutils</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
