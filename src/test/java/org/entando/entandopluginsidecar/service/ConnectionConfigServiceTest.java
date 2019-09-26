@@ -177,4 +177,20 @@ public class ConnectionConfigServiceTest {
 
         connectionConfigService.addConnectionConfig(configDto);
     }
+
+    @Test
+    public void shouldRemoveConnectionConfig() throws Exception {
+        // Given
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createSecret(client, configDto);
+        TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
+
+        // When
+        connectionConfigService.removeConnectionConfig(configDto.getName());
+
+        // Then
+        EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
+        assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).doesNotContain(configDto.getName());
+        assertThat(client.secrets().withName(configDto.getName()).get()).isNull();
+    }
 }

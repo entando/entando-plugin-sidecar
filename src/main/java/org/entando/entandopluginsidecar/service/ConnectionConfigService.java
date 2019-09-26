@@ -74,6 +74,14 @@ public class ConnectionConfigService {
                 .collect(Collectors.toList());
     }
 
+    public void removeConnectionConfig(String configName) {
+        EntandoPlugin entandoPlugin = entandoPlugin().get();
+        entandoPlugin.getSpec().getConnectionConfigNames().remove(configName);
+        entandoPlugin().createOrReplace(entandoPlugin);
+
+        client.secrets().withName(configName).delete();
+    }
+
     private Optional<ConnectionConfigDto> fromSecret(Secret secret) {
         if (secret == null) {
             return Optional.empty();

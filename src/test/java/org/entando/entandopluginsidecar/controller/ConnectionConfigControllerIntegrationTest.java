@@ -1,15 +1,16 @@
 package org.entando.entandopluginsidecar.controller;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.entando.entandopluginsidecar.service.ConnectionConfigService.CONFIG_YAML;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.entandopluginsidecar.util.YamlUtils;
+import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +30,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "keycloak.enabled=false")
 public class ConnectionConfigControllerIntegrationTest {
-
-    private static final String CONFIG_YAML = "config.yaml";
-    private static final String API_VERSION = "v1";
 
     @Autowired
     private TestRestTemplate testRestTemplate;
@@ -63,6 +61,8 @@ public class ConnectionConfigControllerIntegrationTest {
         assertThat(fromYaml.getUsername()).isEqualTo(configDto.getUsername());
         assertThat(fromYaml.getPassword()).isEqualTo(configDto.getPassword());
         assertThat(fromYaml.getServiceType()).isEqualTo(configDto.getServiceType());
+        EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, entandoPluginName);
+        assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).contains(configDto.getName());
     }
 
     @Test
@@ -70,11 +70,7 @@ public class ConnectionConfigControllerIntegrationTest {
         // Given
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto.getName());
-        client.secrets().createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(configDto.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto)))
-                .done();
+        TestHelper.createSecret(client, configDto);
 
         // When
         ResponseEntity<ConnectionConfigDto> response = testRestTemplate
@@ -111,5 +107,23 @@ public class ConnectionConfigControllerIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         List<ConnectionConfigDto> responseBody = response.getBody();
         assertThat(responseBody).contains(configDto1, configDto2, configDto3);
+    }
+
+    @Test
+    public void shouldRemoveConnectionConfig() throws Exception {
+        // Given
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto.getName());
+        TestHelper.createSecret(client, configDto);
+
+        // When
+        ResponseEntity<Void> response = testRestTemplate
+                .exchange("/config/" + configDto.getName(), HttpMethod.DELETE, null, Void.class);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, entandoPluginName);
+        assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).doesNotContain(configDto.getName());
+        assertThat(client.secrets().withName(configDto.getName()).get()).isNull();
     }
 }

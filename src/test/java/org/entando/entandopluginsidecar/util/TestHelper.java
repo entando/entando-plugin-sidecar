@@ -71,6 +71,7 @@ public class TestHelper {
         CustomResourceDefinition definition = getEntandoPluginCrd(client);
         return client
                 .customResources(definition, EntandoPlugin.class, EntandoPluginList.class, DoneableEntandoPlugin.class)
+                .inNamespace(client.getConfiguration().getNamespace())
                 .withName(entandoPluginName).get();
     }
 
