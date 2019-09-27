@@ -3,6 +3,7 @@ package org.entando.entandopluginsidecar.util;
 import static org.entando.entandopluginsidecar.service.ConnectionConfigService.API_VERSION;
 import static org.entando.entandopluginsidecar.service.ConnectionConfigService.CONFIG_YAML;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
@@ -89,6 +90,9 @@ public class TestHelper {
                 .username(RandomStringUtils.randomAlphabetic(20))
                 .password(RandomStringUtils.randomAlphabetic(20))
                 .serviceType(RandomStringUtils.randomAlphabetic(20))
+                .properties(ImmutableMap
+                        .of(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10),
+                                RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10)))
                 .build();
     }
 
