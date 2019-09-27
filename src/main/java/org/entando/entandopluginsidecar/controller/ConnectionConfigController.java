@@ -2,6 +2,7 @@ package org.entando.entandopluginsidecar.controller;
 
 import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_CREATE;
 import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_DELETE;
+import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_EDIT;
 import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_GET;
 import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_LIST;
 
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,5 +52,11 @@ public class ConnectionConfigController {
     @DeleteMapping("/{configName}")
     public void deleteConnectionConfig(@PathVariable String configName) {
         connectionConfigService.removeConnectionConfig(configName);
+    }
+
+    @Secured(CONNECTION_CONFIG_EDIT)
+    @PutMapping
+    public ConnectionConfigDto editConnectionConfig(@RequestBody ConnectionConfigDto connectionConfigDto) {
+        return connectionConfigService.editConnectionConfig(connectionConfigDto);
     }
 }

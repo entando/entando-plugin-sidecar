@@ -32,6 +32,8 @@ public class TestHelper {
     public static final String KEYCLOAK_USER = "keycloak-user";
     public static final String WRONG_ROLE = "wrong-role";
 
+    public static final String ENTANDO_PLUGIN_NAME = "testplugin";
+
     public static void createEntandoPlugin(KubernetesClient client, String pluginName) throws IOException {
         createEntandoPluginWithConfigNames(client, pluginName);
     }

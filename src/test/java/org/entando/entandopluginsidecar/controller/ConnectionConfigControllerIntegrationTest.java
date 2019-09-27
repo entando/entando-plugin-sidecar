@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Base64;
 import java.util.List;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.entandopluginsidecar.util.YamlUtils;
@@ -125,5 +126,29 @@ public class ConnectionConfigControllerIntegrationTest {
         EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, entandoPluginName);
         assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).doesNotContain(configDto.getName());
         assertThat(client.secrets().withName(configDto.getName()).get()).isNull();
+    }
+
+    @Test
+    public void shouldEditConnectionConfig() throws Exception {
+        // Given
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto.getName());
+        TestHelper.createSecret(client, configDto);
+
+        // When
+        configDto.setUsername(RandomStringUtils.randomAlphabetic(10));
+        configDto.setPassword(RandomStringUtils.randomAlphabetic(10));
+        configDto.setServiceType(RandomStringUtils.randomAlphabetic(10));
+        ResponseEntity<ConnectionConfigDto> response = testRestTemplate
+                .exchange("/config", HttpMethod.PUT, new HttpEntity<>(configDto), ConnectionConfigDto.class);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(configDto);
+        Secret secret = client.secrets().withName(configDto.getName()).get();
+        assertThat(secret).isNotNull();
+        byte[] decodedBytes = Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML));
+        ConnectionConfigDto fromYaml = YamlUtils.fromYaml(new String(decodedBytes));
+        assertThat(fromYaml).isEqualTo(configDto);
     }
 }

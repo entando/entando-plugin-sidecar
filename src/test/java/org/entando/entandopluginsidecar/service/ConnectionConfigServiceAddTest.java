@@ -1,14 +1,12 @@
 package org.entando.entandopluginsidecar.service;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_NAME;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.List;
-import java.util.Optional;
 import org.assertj.core.api.Java6JUnitSoftAssertions;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
@@ -22,9 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class ConnectionConfigServiceTest {
-
-    private static final String ENTANDO_PLUGIN_NAME = "testplugin";
+public class ConnectionConfigServiceAddTest {
 
     @Rule
     public KubernetesServer server = new KubernetesServer(true, true);
@@ -69,78 +65,6 @@ public class ConnectionConfigServiceTest {
     }
 
     @Test
-    public void shouldGetConnectionConfigByName() throws Exception {
-        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        TestHelper.createSecret(client, configDto);
-        TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
-
-        Optional<ConnectionConfigDto> configFromService = connectionConfigService
-                .getConnectionConfig(configDto.getName());
-
-        if (configFromService.isPresent()) {
-            safely.assertThat(configFromService.get().getUrl()).isEqualTo(configDto.getUrl());
-            safely.assertThat(configFromService.get().getUsername()).isEqualTo(configDto.getUsername());
-            safely.assertThat(configFromService.get().getPassword()).isEqualTo(configDto.getPassword());
-            safely.assertThat(configFromService.get().getServiceType()).isEqualTo(configDto.getServiceType());
-        } else {
-            fail("Connection config is empty!");
-        }
-    }
-
-    @Test
-    public void shouldReturnEmptyIfConfigIsNotInEntandoPlugin() throws Exception {
-        // Given
-        TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
-        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        TestHelper.createSecret(client, configDto);
-
-        // When
-        Optional<ConnectionConfigDto> connectionConfig = connectionConfigService
-                .getConnectionConfig(configDto.getName());
-
-        // Then
-        assertThat(connectionConfig.isPresent()).isFalse();
-    }
-
-    @Test
-    public void shouldGetAllConnectionConfigs() throws Exception {
-        // Given
-        ConnectionConfigDto configDto1 = TestHelper.getRandomConnectionConfigDto();
-        ConnectionConfigDto configDto2 = TestHelper.getRandomConnectionConfigDto();
-        ConnectionConfigDto configDto3 = TestHelper.getRandomConnectionConfigDto();
-        TestHelper.createSecret(client, configDto1);
-        TestHelper.createSecret(client, configDto2);
-        TestHelper.createSecret(client, configDto3);
-        TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto1.getName(),
-                configDto2.getName());
-
-        // When
-        List<ConnectionConfigDto> configDtos = connectionConfigService.getAllConnectionConfig();
-
-        // Then
-        assertThat(configDtos).containsExactlyInAnyOrder(configDto1, configDto2);
-        assertThat(configDtos).doesNotContain(configDto3);
-    }
-
-    @Test
-    public void shouldReturnEmptyForNonExistingConfig() throws Exception {
-        TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
-
-        Optional<ConnectionConfigDto> configDto = connectionConfigService.getConnectionConfig("does-not-exist");
-
-        assertThat(configDto.isPresent()).isFalse();
-    }
-
-    @Test
-    public void shouldReturnEmptyListForNonExistingConfigs() throws Exception {
-        TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
-
-        List<ConnectionConfigDto> allConnectionConfig = connectionConfigService.getAllConnectionConfig();
-
-        assertThat(allConnectionConfig).isEmpty();
-    }
-
-    @Test
     public void shouldAddConnectionConfigNameToPluginResource() throws Exception {
         // Given
         TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
@@ -176,21 +100,5 @@ public class ConnectionConfigServiceTest {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
 
         connectionConfigService.addConnectionConfig(configDto);
-    }
-
-    @Test
-    public void shouldRemoveConnectionConfig() throws Exception {
-        // Given
-        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        TestHelper.createSecret(client, configDto);
-        TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
-
-        // When
-        connectionConfigService.removeConnectionConfig(configDto.getName());
-
-        // Then
-        EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
-        assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).doesNotContain(configDto.getName());
-        assertThat(client.secrets().withName(configDto.getName()).get()).isNull();
     }
 }
