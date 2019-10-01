@@ -3,6 +3,7 @@ package org.entando.entandopluginsidecar.util;
 import static org.entando.entandopluginsidecar.service.ConnectionConfigService.API_VERSION;
 import static org.entando.entandopluginsidecar.service.ConnectionConfigService.CONFIG_YAML;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
@@ -31,6 +32,8 @@ public class TestHelper {
     public static final String RESOURCE = "entando-sidecar";
     public static final String KEYCLOAK_USER = "keycloak-user";
     public static final String WRONG_ROLE = "wrong-role";
+
+    public static final String ENTANDO_PLUGIN_NAME = "testplugin";
 
     public static void createEntandoPlugin(KubernetesClient client, String pluginName) throws IOException {
         createEntandoPluginWithConfigNames(client, pluginName);
@@ -71,6 +74,7 @@ public class TestHelper {
         CustomResourceDefinition definition = getEntandoPluginCrd(client);
         return client
                 .customResources(definition, EntandoPlugin.class, EntandoPluginList.class, DoneableEntandoPlugin.class)
+                .inNamespace(client.getConfiguration().getNamespace())
                 .withName(entandoPluginName).get();
     }
 
@@ -86,6 +90,9 @@ public class TestHelper {
                 .username(RandomStringUtils.randomAlphabetic(20))
                 .password(RandomStringUtils.randomAlphabetic(20))
                 .serviceType(RandomStringUtils.randomAlphabetic(20))
+                .properties(ImmutableMap
+                        .of(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10),
+                                RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10)))
                 .build();
     }
 

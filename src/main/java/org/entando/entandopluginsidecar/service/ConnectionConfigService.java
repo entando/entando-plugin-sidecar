@@ -29,6 +29,7 @@ public class ConnectionConfigService {
     private static final String OPAQUE_TYPE = "Opaque";
 
     public static final String ERROR_PLUGIN_NOT_FOUND = "org.entando.error.plugin.notFound";
+    public static final String ERROR_SECRET_NOT_FOUND = "org.entando.error.secret.notFound";
 
     private final KubernetesClient client;
     private final String entandoPluginName;
@@ -74,6 +75,14 @@ public class ConnectionConfigService {
                 .collect(Collectors.toList());
     }
 
+    public void removeConnectionConfig(String configName) {
+        EntandoPlugin entandoPlugin = entandoPlugin().get();
+        entandoPlugin.getSpec().getConnectionConfigNames().remove(configName);
+        entandoPlugin().createOrReplace(entandoPlugin);
+
+        client.secrets().withName(configName).delete();
+    }
+
     private Optional<ConnectionConfigDto> fromSecret(Secret secret) {
         if (secret == null) {
             return Optional.empty();
@@ -98,5 +107,24 @@ public class ConnectionConfigService {
                 .customResources(definition, EntandoPlugin.class, EntandoPluginList.class, DoneableEntandoPlugin.class)
                 .inNamespace(client.getConfiguration().getNamespace())
                 .withName(entandoPluginName);
+    }
+
+    public ConnectionConfigDto editConnectionConfig(ConnectionConfigDto configDto) {
+        EntandoPlugin entandoPlugin = entandoPlugin().get();
+        if (entandoPlugin == null) {
+            throw new NotFoundException(ERROR_PLUGIN_NOT_FOUND);
+        }
+        Secret secret = client.secrets().inNamespace(client.getConfiguration().getNamespace())
+                .withName(configDto.getName())
+                .get();
+        if (secret == null) {
+            throw new NotFoundException(ERROR_SECRET_NOT_FOUND);
+        }
+        secret.setStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(configDto)));
+        client.secrets().inNamespace(client.getConfiguration().getNamespace())
+                .withName(configDto.getName())
+                .createOrReplace(secret);
+
+        return configDto;
     }
 }

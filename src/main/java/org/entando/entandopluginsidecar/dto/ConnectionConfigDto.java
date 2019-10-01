@@ -1,5 +1,6 @@
 package org.entando.entandopluginsidecar.dto;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,5 @@ public class ConnectionConfigDto {
     private String password;
     private String name;
     private String serviceType;
+    private Map<String, String> properties;
 }
