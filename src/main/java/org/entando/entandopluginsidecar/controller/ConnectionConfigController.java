@@ -1,10 +1,6 @@
 package org.entando.entandopluginsidecar.controller;
 
-import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_CREATE;
-import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_DELETE;
-import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_EDIT;
-import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_GET;
-import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_LIST;
+import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,7 +28,7 @@ public class ConnectionConfigController {
 
     private final ConnectionConfigService connectionConfigService;
 
-    @Secured(CONNECTION_CONFIG_CREATE)
+    @Secured(CONNECTION_CONFIG)
     @ApiOperation(notes = "Add Config", nickname = "addConnectionConfig", value = "ADD Connection Config")
     @PostMapping
     public ResponseEntity<Void> addConnectionConfig(@RequestBody ConnectionConfigDto connectionConfigDto) {
@@ -40,28 +36,28 @@ public class ConnectionConfigController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Secured(CONNECTION_CONFIG_GET)
+    @Secured(CONNECTION_CONFIG)
     @ApiOperation(notes = "Get Config", nickname = "getConnectionConfig", value = "GET Connection Config")
     @GetMapping("/{configName}")
     public ResponseEntity<ConnectionConfigDto> getConnectionConfig(@PathVariable String configName) {
         return ResponseEntity.of(connectionConfigService.getConnectionConfig(configName));
     }
 
-    @Secured(CONNECTION_CONFIG_LIST)
+    @Secured(CONNECTION_CONFIG)
     @ApiOperation(notes = "List Config", nickname = "listConnectionConfig", value = "LIST Connection Config")
     @GetMapping
     public List<ConnectionConfigDto> getAllConnectionConfig() {
         return connectionConfigService.getAllConnectionConfig();
     }
 
-    @Secured(CONNECTION_CONFIG_DELETE)
+    @Secured(CONNECTION_CONFIG)
     @ApiOperation(notes = "Delete Config", nickname = "deleteConnectionConfig", value = "DELETE Connection Config")
     @DeleteMapping("/{configName}")
     public void deleteConnectionConfig(@PathVariable String configName) {
         connectionConfigService.removeConnectionConfig(configName);
     }
 
-    @Secured(CONNECTION_CONFIG_EDIT)
+    @Secured(CONNECTION_CONFIG)
     @ApiOperation(notes = "Edit Config", nickname = "editConnectionConfig", value = "EDIT Connection Config")
     @PutMapping
     public ConnectionConfigDto editConnectionConfig(@RequestBody ConnectionConfigDto connectionConfigDto) {

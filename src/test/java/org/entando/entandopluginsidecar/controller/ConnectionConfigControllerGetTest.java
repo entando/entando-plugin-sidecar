@@ -1,6 +1,6 @@
 package org.entando.entandopluginsidecar.controller;
 
-import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_GET;
+import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG;
 import static org.entando.entandopluginsidecar.util.TestHelper.CONFIG_ENDPOINT;
 import static org.entando.entandopluginsidecar.util.TestHelper.KEYCLOAK_USER;
 import static org.entando.entandopluginsidecar.util.TestHelper.RESOURCE;
@@ -57,7 +57,7 @@ public class ConnectionConfigControllerGetTest {
     }
 
     @Test
-    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG_GET}, resource = RESOURCE)
+    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
     public void shouldGetConnectionConfig() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(Optional.of(configDto));
