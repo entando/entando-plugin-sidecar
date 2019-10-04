@@ -98,7 +98,7 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.9</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.entando</groupId>
             <artifactId>web-commons</artifactId>
@@ -170,6 +170,12 @@
                         </ports>
                     </container>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>4.3.0</version>
             </plugin>
 
             <plugin>

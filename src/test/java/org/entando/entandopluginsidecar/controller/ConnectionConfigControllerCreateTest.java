@@ -1,6 +1,6 @@
 package org.entando.entandopluginsidecar.controller;
 
-import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG_CREATE;
+import static org.entando.entandopluginsidecar.controller.AuthPermissions.CONNECTION_CONFIG;
 import static org.entando.entandopluginsidecar.util.TestHelper.CONFIG_ENDPOINT;
 import static org.entando.entandopluginsidecar.util.TestHelper.KEYCLOAK_USER;
 import static org.entando.entandopluginsidecar.util.TestHelper.RESOURCE;
@@ -45,7 +45,7 @@ public class ConnectionConfigControllerCreateTest {
     private ConnectionConfigService connectionConfigService;
 
     @Test
-    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG_CREATE}, resource = RESOURCE)
+    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
     public void shouldReturn404ForNotFoundException() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         doThrow(new NotFoundException(ConnectionConfigService.ERROR_PLUGIN_NOT_FOUND)).when(connectionConfigService)
@@ -58,7 +58,7 @@ public class ConnectionConfigControllerCreateTest {
     }
 
     @Test
-    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG_CREATE}, resource = RESOURCE)
+    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
     public void shouldReturnErrorForKubernetesException() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         doThrow(KubernetesClientException.class).when(connectionConfigService)
@@ -93,7 +93,7 @@ public class ConnectionConfigControllerCreateTest {
     }
 
     @Test
-    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG_CREATE}, resource = RESOURCE)
+    @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
     public void shouldCreateConnectionConfig() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
 

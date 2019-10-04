@@ -1,4 +1,7 @@
-# entando-plugin-sidecar
+# Entando Plugin Sidecar
+
+[![Build Status](https://jenkins.entandocloud.com/buildStatus/icon?job=de-entando-plugin-sidecar-master)](https://jenkins.entandocloud.com/job/de-entando-plugin-sidecar-master/)
+[![Coverage Status](https://coveralls.io/repos/github/entando/entando-plugin-sidecar/badge.svg?branch=master)](https://coveralls.io/github/entando/entando-plugin-sidecar?branch=master)
 
 This application is intended to be used as a sidecar for the Entando Plugins that need to manage connection
 configurations and credentials (create, update, retrieve and delete). However, Entando Plugins don't need 
