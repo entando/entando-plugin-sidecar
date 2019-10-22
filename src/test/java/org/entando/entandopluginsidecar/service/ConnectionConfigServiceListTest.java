@@ -8,9 +8,11 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.List;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
+import org.entando.web.exception.NotFoundException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class ConnectionConfigServiceListTest {
 
@@ -20,6 +22,9 @@ public class ConnectionConfigServiceListTest {
     private ConnectionConfigService connectionConfigService;
 
     private KubernetesClient client;
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
@@ -54,5 +59,15 @@ public class ConnectionConfigServiceListTest {
         List<ConnectionConfigDto> allConnectionConfig = connectionConfigService.getAllConnectionConfig();
 
         assertThat(allConnectionConfig).isEmpty();
+    }
+
+    @Test
+    public void shouldRaiseNotFoundExceptionIfPluginIsNotThere() throws Exception {
+        expectedException.expect(NotFoundException.class);
+        expectedException.expectMessage(ConnectionConfigService.ERROR_PLUGIN_NOT_FOUND);
+
+        TestHelper.createEntandoPluginCrd(client);
+
+        connectionConfigService.getAllConnectionConfig();
     }
 }

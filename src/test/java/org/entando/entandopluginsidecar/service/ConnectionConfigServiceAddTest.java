@@ -14,6 +14,7 @@ import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
+import org.entando.web.exception.ConflictException;
 import org.entando.web.exception.NotFoundException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -100,5 +101,38 @@ public class ConnectionConfigServiceAddTest {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
 
         connectionConfigService.addConnectionConfig(configDto);
+    }
+
+    @Test
+    public void shouldRaiseExceptionWhenAddingConnectionWithSameName() throws Exception {
+        expectedException.expect(ConflictException.class);
+        expectedException.expectMessage(ConnectionConfigService.ERROR_SECRET_ALREADY_EXISTS);
+
+        TestHelper.createEntandoPluginCrd(client);
+        TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+
+        connectionConfigService.addConnectionConfig(configDto);
+        connectionConfigService.addConnectionConfig(configDto);
+    }
+
+    @Test
+    public void shouldNotDuplicateConnectionConfigNamesOnPlugin() throws Exception {
+        // Given
+        TestHelper.createEntandoPluginCrd(client);
+        TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+
+        // When
+        try {
+            connectionConfigService.addConnectionConfig(configDto);
+            connectionConfigService.addConnectionConfig(configDto);
+        } catch (ConflictException e) { // NOPMD
+            // do nothing
+        }
+
+        // Then
+        EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
+        assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).doesNotHaveDuplicates();
     }
 }
