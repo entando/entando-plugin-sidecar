@@ -16,6 +16,7 @@ import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
+import org.entando.web.exception.ConflictException;
 import org.entando.web.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class ConnectionConfigService {
 
     public static final String ERROR_PLUGIN_NOT_FOUND = "org.entando.error.plugin.notFound";
     public static final String ERROR_SECRET_NOT_FOUND = "org.entando.error.secret.notFound";
+    public static final String ERROR_SECRET_ALREADY_EXISTS = "org.entando.error.secret.alreadyExists";
 
     private final KubernetesClient client;
     private final String entandoPluginName;
@@ -40,19 +42,25 @@ public class ConnectionConfigService {
     }
 
     public void addConnectionConfig(ConnectionConfigDto connectionConfigDto) {
-        client.secrets().inNamespace(client.getConfiguration().getNamespace()).createNew()
-                .withApiVersion(API_VERSION)
-                .withNewMetadata().withName(connectionConfigDto.getName()).endMetadata()
-                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(connectionConfigDto)))
-                .withType(OPAQUE_TYPE)
-                .done();
-
         EntandoPlugin entandoPlugin = entandoPlugin().get();
         if (entandoPlugin == null) {
             throw new NotFoundException(ERROR_PLUGIN_NOT_FOUND);
         }
         entandoPlugin.getSpec().getConnectionConfigNames().add(connectionConfigDto.getName());
         entandoPlugin().createOrReplace(entandoPlugin);
+
+        Secret secret = client.secrets().inNamespace(client.getConfiguration().getNamespace())
+                .withName(connectionConfigDto.getName())
+                .get();
+        if (secret != null) {
+            throw new ConflictException(ERROR_SECRET_ALREADY_EXISTS);
+        }
+        client.secrets().inNamespace(client.getConfiguration().getNamespace()).createNew()
+                .withApiVersion(API_VERSION)
+                .withNewMetadata().withName(connectionConfigDto.getName()).endMetadata()
+                .withStringData(Collections.singletonMap(CONFIG_YAML, YamlUtils.toYaml(connectionConfigDto)))
+                .withType(OPAQUE_TYPE)
+                .done();
     }
 
     public Optional<ConnectionConfigDto> getConnectionConfig(String name) {

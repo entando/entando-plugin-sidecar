@@ -19,9 +19,8 @@ import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.kubernetes.model.DbmsImageVendor;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
-import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
-import org.entando.kubernetes.model.plugin.EntandoPluginSpecBuilder;
 import org.entando.kubernetes.model.plugin.PluginSecurityLevel;
 import org.springframework.core.io.ClassPathResource;
 
@@ -42,19 +41,19 @@ public class TestHelper {
     public static void createEntandoPluginWithConfigNames(KubernetesClient client, String pluginName,
             String... configNames) throws IOException {
 
-        EntandoPluginSpec spec = new EntandoPluginSpecBuilder<>()
+        EntandoPlugin entandoPlugin = new EntandoPluginBuilder().withNewSpec()
                 .withImage("entando/entando-avatar-plugin")
                 .withDbms(DbmsImageVendor.POSTGRESQL)
                 .withReplicas(1)
                 .withHealthCheckPath("/management/health")
-                .withIngressPath("/avatarPlugin")
-                .withKeycloakServer("keycloak-namespace", "test-keycloak")
-                .withEntandoApp("test", "test-entando")
+                .withIngressPath("/dummyPlugin")
                 .withSecurityLevel(PluginSecurityLevel.LENIENT)
+                .withIngressHostName("dummyPlugin.test")
+                .endSpec()
                 .build();
 
-        EntandoPlugin entandoPlugin = new EntandoPlugin(spec);
         entandoPlugin.setMetadata(new ObjectMetaBuilder().withName(pluginName).build());
+        entandoPlugin.setApiVersion("entando.org/v1alpha1");
         if (configNames.length > 0) {
             entandoPlugin.getSpec().getConnectionConfigNames().addAll(Arrays.asList(configNames));
         }
