@@ -5,10 +5,13 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
@@ -16,6 +19,8 @@ import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
+import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
+import org.entando.kubernetes.model.plugin.EntandoPluginSpecBuilder;
 import org.entando.web.exception.ConflictException;
 import org.entando.web.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +51,15 @@ public class ConnectionConfigService {
         if (entandoPlugin == null) {
             throw new NotFoundException(ERROR_PLUGIN_NOT_FOUND);
         }
-        entandoPlugin.getSpec().getConnectionConfigNames().add(connectionConfigDto.getName());
+        Set<String> connectionConfigNames = new HashSet<>();
+        if (entandoPlugin.getSpec().getConnectionConfigNames() != null) {
+            connectionConfigNames.addAll(entandoPlugin.getSpec().getConnectionConfigNames());
+        }
+        connectionConfigNames.add(connectionConfigDto.getName());
+        EntandoPluginSpec newSpec = new EntandoPluginSpecBuilder(entandoPlugin.getSpec())
+                .withConnectionConfigNames(new ArrayList<>(connectionConfigNames))
+                .build();
+        entandoPlugin.setSpec(newSpec);
         entandoPlugin().createOrReplace(entandoPlugin);
 
         Secret secret = client.secrets().inNamespace(client.getConfiguration().getNamespace())
@@ -73,7 +86,12 @@ public class ConnectionConfigService {
     }
 
     public List<ConnectionConfigDto> getAllConnectionConfig() {
-        List<String> configs = entandoPlugin().get().getSpec().getConnectionConfigNames();
+        EntandoPlugin entandoPlugin = entandoPlugin().get();
+        if (entandoPlugin == null) {
+            throw new NotFoundException(ERROR_PLUGIN_NOT_FOUND);
+        }
+        List<String> configs = entandoPlugin.getSpec().getConnectionConfigNames() == null ? new ArrayList<>()
+                : entandoPlugin.getSpec().getConnectionConfigNames();
 
         return client.secrets().list().getItems().stream()
                 .filter(e -> configs.contains(e.getMetadata().getName()))

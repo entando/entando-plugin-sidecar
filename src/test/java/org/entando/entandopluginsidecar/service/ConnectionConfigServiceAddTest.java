@@ -115,4 +115,24 @@ public class ConnectionConfigServiceAddTest {
         connectionConfigService.addConnectionConfig(configDto);
         connectionConfigService.addConnectionConfig(configDto);
     }
+
+    @Test
+    public void shouldNotDuplicateConnectionConfigNamesOnPlugin() throws Exception {
+        // Given
+        TestHelper.createEntandoPluginCrd(client);
+        TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+
+        // When
+        try {
+            connectionConfigService.addConnectionConfig(configDto);
+            connectionConfigService.addConnectionConfig(configDto);
+        } catch (ConflictException e) { // NOPMD
+            // do nothing
+        }
+
+        // Then
+        EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
+        assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).doesNotHaveDuplicates();
+    }
 }
