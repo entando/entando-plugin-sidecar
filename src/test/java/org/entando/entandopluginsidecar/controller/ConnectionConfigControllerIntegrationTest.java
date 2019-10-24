@@ -3,6 +3,7 @@ package org.entando.entandopluginsidecar.controller;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.entandopluginsidecar.service.ConnectionConfigService.CONFIG_YAML;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Base64;
@@ -58,10 +59,7 @@ public class ConnectionConfigControllerIntegrationTest {
         assertThat(secret).isNotNull();
         byte[] decodedBytes = Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML));
         ConnectionConfigDto fromYaml = YamlUtils.fromYaml(new String(decodedBytes));
-        assertThat(fromYaml.getUrl()).isEqualTo(configDto.getUrl());
-        assertThat(fromYaml.getUsername()).isEqualTo(configDto.getUsername());
-        assertThat(fromYaml.getPassword()).isEqualTo(configDto.getPassword());
-        assertThat(fromYaml.getServiceType()).isEqualTo(configDto.getServiceType());
+        assertThat(fromYaml).isEqualTo(configDto);
         EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, entandoPluginName);
         assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).contains(configDto.getName());
     }
@@ -81,10 +79,7 @@ public class ConnectionConfigControllerIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         ConnectionConfigDto responseBody = response.getBody();
         assertThat(responseBody).isNotNull();
-        assertThat(responseBody.getUrl()).isEqualTo(configDto.getUrl());
-        assertThat(responseBody.getUsername()).isEqualTo(configDto.getUsername());
-        assertThat(responseBody.getPassword()).isEqualTo(configDto.getPassword());
-        assertThat(responseBody.getServiceType()).isEqualTo(configDto.getServiceType());
+        assertThat(responseBody).isEqualTo(configDto);
     }
 
     @Test
@@ -136,9 +131,9 @@ public class ConnectionConfigControllerIntegrationTest {
         TestHelper.createSecret(client, configDto);
 
         // When
-        configDto.setUsername(RandomStringUtils.randomAlphabetic(10));
-        configDto.setPassword(RandomStringUtils.randomAlphabetic(10));
-        configDto.setServiceType(RandomStringUtils.randomAlphabetic(10));
+        configDto.setProperties(ImmutableMap
+                .of(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10),
+                        RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10)));
         ResponseEntity<ConnectionConfigDto> response = testRestTemplate
                 .exchange("/config", HttpMethod.PUT, new HttpEntity<>(configDto), ConnectionConfigDto.class);
 

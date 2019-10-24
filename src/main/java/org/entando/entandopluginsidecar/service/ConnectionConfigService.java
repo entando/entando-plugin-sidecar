@@ -10,7 +10,6 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -76,13 +75,16 @@ public class ConnectionConfigService {
                 .done();
     }
 
-    public Optional<ConnectionConfigDto> getConnectionConfig(String name) {
+    public ConnectionConfigDto getConnectionConfig(String name) {
         EntandoPlugin entandoPlugin = entandoPlugin().get();
+        if (entandoPlugin == null) {
+            throw new NotFoundException(ERROR_PLUGIN_NOT_FOUND);
+        }
         if (entandoPlugin.getSpec().getConnectionConfigNames().contains(name)) {
             Secret secret = client.secrets().withName(name).get();
             return fromSecret(secret);
         }
-        return Optional.empty();
+        throw new NotFoundException(ERROR_SECRET_NOT_FOUND);
     }
 
     public List<ConnectionConfigDto> getAllConnectionConfig() {
@@ -96,8 +98,6 @@ public class ConnectionConfigService {
         return client.secrets().list().getItems().stream()
                 .filter(e -> configs.contains(e.getMetadata().getName()))
                 .map(this::fromSecret)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
@@ -109,18 +109,15 @@ public class ConnectionConfigService {
         client.secrets().withName(configName).delete();
     }
 
-    private Optional<ConnectionConfigDto> fromSecret(Secret secret) {
-        if (secret == null) {
-            return Optional.empty();
+    private ConnectionConfigDto fromSecret(Secret secret) {
+        if (secret != null && secret.getStringData() != null && secret.getStringData().get(CONFIG_YAML) != null) {
+            return YamlUtils.fromYaml(secret.getStringData().get(CONFIG_YAML));
         }
-        if (secret.getStringData() != null && secret.getStringData().get(CONFIG_YAML) != null) {
-            return Optional.of(YamlUtils.fromYaml(secret.getStringData().get(CONFIG_YAML)));
-        }
-        if (secret.getData() != null && secret.getData().get(CONFIG_YAML) != null) {
+        if (secret != null && secret.getData() != null && secret.getData().get(CONFIG_YAML) != null) {
             byte[] decodedBytes = Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML));
-            return Optional.of(YamlUtils.fromYaml(new String(decodedBytes, StandardCharsets.UTF_8)));
+            return YamlUtils.fromYaml(new String(decodedBytes, StandardCharsets.UTF_8));
         }
-        return Optional.empty();
+        throw new NotFoundException(ERROR_SECRET_NOT_FOUND);
     }
 
     private Resource<EntandoPlugin, DoneableEntandoPlugin> entandoPlugin() {

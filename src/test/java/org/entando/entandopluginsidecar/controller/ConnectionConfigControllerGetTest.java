@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Optional;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.service.ConnectionConfigService;
 import org.entando.entandopluginsidecar.util.TestHelper;
@@ -40,7 +39,7 @@ public class ConnectionConfigControllerGetTest {
     @Test
     public void shouldReturnUnauthorizedWhenTryingToGetWithoutCredentials() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(Optional.of(configDto));
+        when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(configDto);
 
         mvc.perform(get(CONFIG_ENDPOINT + "/" + configDto.getName()).contentType(APPLICATION_JSON_UTF8))
                 .andExpect(status().isUnauthorized());
@@ -50,7 +49,7 @@ public class ConnectionConfigControllerGetTest {
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {WRONG_ROLE}, resource = RESOURCE)
     public void shouldReturnForbiddenWhenTryingToGetWithWrongRole() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(Optional.of(configDto));
+        when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(configDto);
 
         mvc.perform(get(CONFIG_ENDPOINT + "/" + configDto.getName()).contentType(APPLICATION_JSON_UTF8))
                 .andExpect(status().isForbidden());
@@ -60,14 +59,11 @@ public class ConnectionConfigControllerGetTest {
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
     public void shouldGetConnectionConfig() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(Optional.of(configDto));
+        when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(configDto);
 
         mvc.perform(get(CONFIG_ENDPOINT + "/" + configDto.getName()).contentType(APPLICATION_JSON_UTF8))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url", is(configDto.getUrl())))
-                .andExpect(jsonPath("$.username", is(configDto.getUsername())))
-                .andExpect(jsonPath("$.password", is(configDto.getPassword())))
                 .andExpect(jsonPath("$.name", is(configDto.getName())))
-                .andExpect(jsonPath("$.serviceType", is(configDto.getServiceType())));
+                .andExpect(jsonPath("$.properties", is(configDto.getProperties())));
     }
 }

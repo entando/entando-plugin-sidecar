@@ -57,10 +57,8 @@ public class ConnectionConfigServiceAddTest {
         safely.assertThat(secret.getMetadata().getName()).isEqualTo(configDto.getName());
         ConnectionConfigDto fromYaml = YamlUtils
                 .fromYaml(secret.getStringData().get(ConnectionConfigService.CONFIG_YAML));
-        safely.assertThat(fromYaml.getUrl()).isEqualTo(configDto.getUrl());
-        safely.assertThat(fromYaml.getUsername()).isEqualTo(configDto.getUsername());
-        safely.assertThat(fromYaml.getPassword()).isEqualTo(configDto.getPassword());
-        safely.assertThat(fromYaml.getServiceType()).isEqualTo(configDto.getServiceType());
+        safely.assertThat(fromYaml.getName()).isEqualTo(configDto.getName());
+        safely.assertThat(fromYaml.getProperties()).isEqualTo(configDto.getProperties());
         EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
         safely.assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).contains(configDto.getName());
     }

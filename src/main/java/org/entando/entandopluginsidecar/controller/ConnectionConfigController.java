@@ -39,8 +39,8 @@ public class ConnectionConfigController {
     @Secured(CONNECTION_CONFIG)
     @ApiOperation(notes = "Get Config", nickname = "getConnectionConfig", value = "GET Connection Config")
     @GetMapping("/{configName}")
-    public ResponseEntity<ConnectionConfigDto> getConnectionConfig(@PathVariable String configName) {
-        return ResponseEntity.of(connectionConfigService.getConnectionConfig(configName));
+    public ConnectionConfigDto getConnectionConfig(@PathVariable String configName) {
+        return connectionConfigService.getConnectionConfig(configName);
     }
 
     @Secured(CONNECTION_CONFIG)
