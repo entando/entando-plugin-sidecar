@@ -3,6 +3,7 @@ package org.entando.entandopluginsidecar.service;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_NAME;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -42,9 +43,9 @@ public class ConnectionConfigServiceEditTest {
         TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
 
         // When
-        configDto.setUsername(RandomStringUtils.randomAlphabetic(10));
-        configDto.setPassword(RandomStringUtils.randomAlphabetic(10));
-        configDto.setServiceType(RandomStringUtils.randomAlphabetic(10));
+        configDto.setProperties(ImmutableMap
+                .of(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10),
+                        RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10)));
         ConnectionConfigDto fromService = connectionConfigService.editConnectionConfig(configDto);
 
         // Then

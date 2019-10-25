@@ -84,11 +84,7 @@ public class TestHelper {
 
     public static ConnectionConfigDto getRandomConnectionConfigDto() {
         return ConnectionConfigDto.builder()
-                .url(RandomStringUtils.randomAlphabetic(100))
                 .name(RandomStringUtils.randomAlphabetic(20).toLowerCase())
-                .username(RandomStringUtils.randomAlphabetic(20))
-                .password(RandomStringUtils.randomAlphabetic(20))
-                .serviceType(RandomStringUtils.randomAlphabetic(20))
                 .properties(ImmutableMap
                         .of(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10),
                                 RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10)))

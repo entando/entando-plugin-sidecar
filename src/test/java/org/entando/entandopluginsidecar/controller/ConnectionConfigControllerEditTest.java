@@ -76,11 +76,8 @@ public class ConnectionConfigControllerEditTest {
                 .contentType(APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(configDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url", is(configDto.getUrl())))
-                .andExpect(jsonPath("$.username", is(configDto.getUsername())))
-                .andExpect(jsonPath("$.password", is(configDto.getPassword())))
                 .andExpect(jsonPath("$.name", is(configDto.getName())))
-                .andExpect(jsonPath("$.serviceType", is(configDto.getServiceType())));
+                .andExpect(jsonPath("$.properties", is(configDto.getProperties())));
 
         verify(connectionConfigService).editConnectionConfig(configDto);
     }

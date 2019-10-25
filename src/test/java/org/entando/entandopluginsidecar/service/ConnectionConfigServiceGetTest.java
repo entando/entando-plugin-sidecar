@@ -1,19 +1,18 @@
 package org.entando.entandopluginsidecar.service;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_NAME;
-import static org.junit.Assert.fail;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.Optional;
 import org.assertj.core.api.Java6JUnitSoftAssertions;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
+import org.entando.web.exception.NotFoundException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class ConnectionConfigServiceGetTest {
 
@@ -22,6 +21,9 @@ public class ConnectionConfigServiceGetTest {
 
     @Rule
     public Java6JUnitSoftAssertions safely = new Java6JUnitSoftAssertions();
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     private ConnectionConfigService connectionConfigService;
 
@@ -39,51 +41,52 @@ public class ConnectionConfigServiceGetTest {
         TestHelper.createSecret(client, configDto);
         TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
 
-        Optional<ConnectionConfigDto> configFromService = connectionConfigService
-                .getConnectionConfig(configDto.getName());
+        ConnectionConfigDto configFromService = connectionConfigService.getConnectionConfig(configDto.getName());
 
-        if (configFromService.isPresent()) {
-            safely.assertThat(configFromService.get().getUrl()).isEqualTo(configDto.getUrl());
-            safely.assertThat(configFromService.get().getUsername()).isEqualTo(configDto.getUsername());
-            safely.assertThat(configFromService.get().getPassword()).isEqualTo(configDto.getPassword());
-            safely.assertThat(configFromService.get().getServiceType()).isEqualTo(configDto.getServiceType());
-        } else {
-            fail("Connection config is empty!");
-        }
+        safely.assertThat(configFromService).isEqualTo(configDto);
     }
 
     @Test
-    public void shouldReturnEmptyIfConfigIsNotInEntandoPlugin() throws Exception {
-        // Given
+    public void shouldRaiseNotFoundExceptionIfEntandoPluginIsNotThere() throws Exception {
+        expectedException.expect(NotFoundException.class);
+        expectedException.expectMessage(ConnectionConfigService.ERROR_PLUGIN_NOT_FOUND);
+
+        TestHelper.createEntandoPluginCrd(client);
+
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createSecret(client, configDto);
+
+        connectionConfigService.getConnectionConfig(configDto.getName());
+    }
+
+    @Test
+    public void shouldRaiseNotFoundExceptionIfSecretIsNotThere() throws Exception {
+        expectedException.expect(NotFoundException.class);
+        expectedException.expectMessage(ConnectionConfigService.ERROR_SECRET_NOT_FOUND);
+
+        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+        TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
+
+        connectionConfigService.getConnectionConfig(configDto.getName());
+    }
+
+    @Test
+    public void shouldRaiseNotFoundExceptionIfConfigIsNotInEntandoPlugin() throws Exception {
+        expectedException.expect(NotFoundException.class);
+        expectedException.expectMessage(ConnectionConfigService.ERROR_SECRET_NOT_FOUND);
+
         TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createSecret(client, configDto);
 
-        // When
-        Optional<ConnectionConfigDto> connectionConfig = connectionConfigService
-                .getConnectionConfig(configDto.getName());
-
-        // Then
-        assertThat(connectionConfig.isPresent()).isFalse();
+        connectionConfigService.getConnectionConfig(configDto.getName());
     }
 
     @Test
-    public void shouldReturnEmptyIfSecretIsNotThere() throws Exception {
-        // Given
-        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
+    public void shouldRaiseNotFoundExceptionIfConfigYamlIsNotInSecret() throws Exception {
+        expectedException.expect(NotFoundException.class);
+        expectedException.expectMessage(ConnectionConfigService.ERROR_SECRET_NOT_FOUND);
 
-        // When
-        Optional<ConnectionConfigDto> connectionConfig = connectionConfigService
-                .getConnectionConfig(configDto.getName());
-
-        // Then
-        assertThat(connectionConfig.isPresent()).isFalse();
-    }
-
-    @Test
-    public void shouldReturnEmptyIfConfigYamlIsNotInSecret() throws Exception {
-        // Given
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createSecret(client, configDto);
         Secret secret = client.secrets().inNamespace(client.getConfiguration().getNamespace())
@@ -93,20 +96,6 @@ public class ConnectionConfigServiceGetTest {
         client.secrets().inNamespace(client.getConfiguration().getNamespace()).createOrReplace(secret);
         TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
 
-        // When
-        Optional<ConnectionConfigDto> connectionConfig = connectionConfigService
-                .getConnectionConfig(configDto.getName());
-
-        // Then
-        assertThat(connectionConfig.isPresent()).isFalse();
-    }
-
-    @Test
-    public void shouldReturnEmptyForNonExistingConfig() throws Exception {
-        TestHelper.createEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
-
-        Optional<ConnectionConfigDto> configDto = connectionConfigService.getConnectionConfig("does-not-exist");
-
-        assertThat(configDto.isPresent()).isFalse();
+        connectionConfigService.getConnectionConfig(configDto.getName());
     }
 }
