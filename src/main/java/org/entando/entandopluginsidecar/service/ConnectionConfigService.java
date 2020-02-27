@@ -1,7 +1,6 @@
 package org.entando.entandopluginsidecar.service;
 
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +16,7 @@ import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.model.plugin.EntandoPluginList;
+import org.entando.kubernetes.model.plugin.EntandoPluginOperationFactory;
 import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
 import org.entando.kubernetes.model.plugin.EntandoPluginSpecBuilder;
 import org.entando.web.exception.ConflictException;
@@ -95,8 +94,8 @@ public class ConnectionConfigService {
         List<String> configs = entandoPlugin.getSpec().getConnectionConfigNames() == null ? new ArrayList<>()
                 : entandoPlugin.getSpec().getConnectionConfigNames();
 
-        return client.secrets().list().getItems().stream()
-                .filter(e -> configs.contains(e.getMetadata().getName()))
+        return configs.stream()
+                .map(name -> client.secrets().withName(name).get())
                 .map(this::fromSecret)
                 .collect(Collectors.toList());
     }
@@ -121,15 +120,8 @@ public class ConnectionConfigService {
     }
 
     private Resource<EntandoPlugin, DoneableEntandoPlugin> entandoPlugin() {
-        CustomResourceDefinition definition = client.customResourceDefinitions().withName(EntandoPlugin.CRD_NAME).get();
-        if (definition == null) {
-            throw new NotFoundException(ERROR_PLUGIN_NOT_FOUND);
-        }
-
-        return client
-                .customResources(definition, EntandoPlugin.class, EntandoPluginList.class, DoneableEntandoPlugin.class)
-                .inNamespace(client.getConfiguration().getNamespace())
-                .withName(entandoPluginName);
+        return EntandoPluginOperationFactory.produceAllEntandoPlugins(client)
+                .inNamespace(client.getConfiguration().getNamespace()).withName(entandoPluginName);
     }
 
     public ConnectionConfigDto editConnectionConfig(ConnectionConfigDto configDto) {

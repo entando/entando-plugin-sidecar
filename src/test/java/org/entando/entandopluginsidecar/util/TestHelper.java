@@ -16,7 +16,7 @@ import java.util.List;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
-import org.entando.kubernetes.model.DbmsImageVendor;
+import org.entando.kubernetes.model.DbmsVendor;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
@@ -33,6 +33,8 @@ public class TestHelper {
     public static final String WRONG_ROLE = "wrong-role";
 
     public static final String ENTANDO_PLUGIN_NAME = "testplugin";
+    public static final String ENTANDO_API_VERSION = "entando.org/v1";
+    public static final String ENTANDO_PLUGIN_CRD = "crd/EntandoPluginCRD.yaml";
 
     public static void createEntandoPlugin(KubernetesClient client, String pluginName) throws IOException {
         createEntandoPluginWithConfigNames(client, pluginName);
@@ -43,7 +45,7 @@ public class TestHelper {
 
         EntandoPlugin entandoPlugin = new EntandoPluginBuilder().withNewSpec()
                 .withImage("entando/entando-avatar-plugin")
-                .withDbms(DbmsImageVendor.POSTGRESQL)
+                .withDbms(DbmsVendor.POSTGRESQL)
                 .withReplicas(1)
                 .withHealthCheckPath("/management/health")
                 .withIngressPath("/dummyPlugin")
@@ -53,7 +55,7 @@ public class TestHelper {
                 .build();
 
         entandoPlugin.setMetadata(new ObjectMetaBuilder().withName(pluginName).build());
-        entandoPlugin.setApiVersion("entando.org/v1alpha1");
+        entandoPlugin.setApiVersion(ENTANDO_API_VERSION);
         if (configNames.length > 0) {
             entandoPlugin.getSpec().getConnectionConfigNames().addAll(Arrays.asList(configNames));
         }
@@ -95,7 +97,7 @@ public class TestHelper {
         CustomResourceDefinition entandoPluginCrd = client.customResourceDefinitions().withName(EntandoPlugin.CRD_NAME)
                 .get();
         if (entandoPluginCrd == null) {
-            List<HasMetadata> list = client.load(new ClassPathResource("crd/EntandoPluginCRD.yaml").getInputStream())
+            List<HasMetadata> list = client.load(new ClassPathResource(ENTANDO_PLUGIN_CRD).getInputStream())
                     .get();
             entandoPluginCrd = (CustomResourceDefinition) list.get(0);
             // see issue https://github.com/fabric8io/kubernetes-client/issues/1486
