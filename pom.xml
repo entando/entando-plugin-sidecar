@@ -57,7 +57,7 @@
         <entando.k8s.operator.registry>docker.io</entando.k8s.operator.registry>
         <jib.registry>${entando.k8s.operator.registry}</jib.registry>
         <jib-maven-plugin.version>1.2.0</jib-maven-plugin.version>
-        <fabric8.version>4.1.3</fabric8.version>
+        <fabric8.version>4.3.1</fabric8.version>
         <pmd.version>6.18.0</pmd.version>
     </properties>
 
