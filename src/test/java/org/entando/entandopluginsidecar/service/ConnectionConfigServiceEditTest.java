@@ -1,42 +1,39 @@
 package org.entando.entandopluginsidecar.service;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_CRD;
 import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_NAME;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.assertj.core.api.Assertions;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.entando.web.exception.NotFoundException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-public class ConnectionConfigServiceEditTest {
-
-    @Rule
-    public KubernetesServer server = new KubernetesServer(true, true);
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@EnableKubernetesMockClient(crud = true, https = false)
+class ConnectionConfigServiceEditTest {
 
     private ConnectionConfigService connectionConfigService;
 
-    private KubernetesClient client;
+    static KubernetesClient client;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        client = server.getClient();
         connectionConfigService = new ConnectionConfigService(client, ENTANDO_PLUGIN_NAME);
     }
 
     @Test
-    public void shouldEditConnectionConfig() throws Exception {
+    void shouldEditConnectionConfig() throws Exception {
         // Given
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createSecret(client, configDto);
@@ -57,25 +54,26 @@ public class ConnectionConfigServiceEditTest {
     }
 
     @Test
-    public void shouldRaiseNotFoundExceptionWhenTryingToEditAndPluginIsNotThere() throws Exception {
-        expectedException.expect(NotFoundException.class);
-        expectedException.expectMessage(ConnectionConfigService.ERROR_PLUGIN_NOT_FOUND);
+    void shouldRaiseNotFoundExceptionWhenTryingToEditAndPluginIsNotThere() throws Exception {
+        TestHelper.deleteEntandoPlugin(client, ENTANDO_PLUGIN_NAME);
+        Assertions.assertThatThrownBy(() -> {
+            TestHelper.createEntandoPluginCrd(client);
+            ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+            TestHelper.createSecret(client, configDto);
 
-        TestHelper.createEntandoPluginCrd(client);
-        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        TestHelper.createSecret(client, configDto);
-
-        connectionConfigService.editConnectionConfig(configDto);
+            connectionConfigService.editConnectionConfig(configDto);
+        }).isInstanceOf(NotFoundException.class)
+                .hasMessage(ConnectionConfigService.ERROR_PLUGIN_NOT_FOUND);
     }
 
     @Test
-    public void shouldRaiseNotFoundExceptionWhenTryingToEditAndSecretIsNotThere() throws Exception {
-        expectedException.expect(NotFoundException.class);
-        expectedException.expectMessage(ConnectionConfigService.ERROR_SECRET_NOT_FOUND);
+    void shouldRaiseNotFoundExceptionWhenTryingToEditAndSecretIsNotThere() throws Exception {
+        Assertions.assertThatThrownBy(() -> {
+            ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
+            TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
 
-        ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
-        TestHelper.createEntandoPluginWithConfigNames(client, ENTANDO_PLUGIN_NAME, configDto.getName());
-
-        connectionConfigService.editConnectionConfig(configDto);
+            connectionConfigService.editConnectionConfig(configDto);
+        }).isInstanceOf(NotFoundException.class)
+                .hasMessage(ConnectionConfigService.ERROR_SECRET_NOT_FOUND);
     }
 }

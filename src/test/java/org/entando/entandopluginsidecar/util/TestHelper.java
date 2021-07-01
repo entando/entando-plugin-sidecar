@@ -84,6 +84,16 @@ public class TestHelper {
                 .withName(EntandoPlugin.CRD_NAME).get();
     }
 
+    public static void deleteEntandoPlugin(KubernetesClient client, String entandoPluginName) {
+        CustomResourceDefinition definition = getEntandoPluginCrd(client);
+        if (definition != null) {
+            client.customResources(definition, EntandoPlugin.class, EntandoPluginList.class,
+                    DoneableEntandoPlugin.class)
+                    .inNamespace(client.getConfiguration().getNamespace())
+                    .withName(entandoPluginName).delete();
+        }
+    }
+
     public static ConnectionConfigDto getRandomConnectionConfigDto() {
         return ConnectionConfigDto.builder()
                 .name(RandomStringUtils.randomAlphabetic(20).toLowerCase())

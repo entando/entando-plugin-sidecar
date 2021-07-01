@@ -21,19 +21,16 @@ import org.entando.entandopluginsidecar.service.ConnectionConfigService;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.keycloak.testutils.WithMockKeycloakUser;
 import org.entando.web.exception.NotFoundException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ConnectionConfigControllerCreateTest {
+class ConnectionConfigControllerCreateTest {
 
     @Autowired
     private MockMvc mvc;
@@ -46,7 +43,7 @@ public class ConnectionConfigControllerCreateTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
-    public void shouldReturn404ForNotFoundException() throws Exception {
+    void shouldReturn404ForNotFoundException() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         doThrow(new NotFoundException(ConnectionConfigService.ERROR_PLUGIN_NOT_FOUND)).when(connectionConfigService)
                 .addConnectionConfig(any());
@@ -59,7 +56,7 @@ public class ConnectionConfigControllerCreateTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
-    public void shouldReturnErrorForKubernetesException() throws Exception {
+    void shouldReturnErrorForKubernetesException() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         doThrow(KubernetesClientException.class).when(connectionConfigService)
                 .addConnectionConfig(any());
@@ -70,7 +67,7 @@ public class ConnectionConfigControllerCreateTest {
     }
 
     @Test
-    public void shouldReturnUnauthorizedWhenTryingToCreateWithoutCredentials() throws Exception {
+    void shouldReturnUnauthorizedWhenTryingToCreateWithoutCredentials() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         doThrow(KubernetesClientException.class).when(connectionConfigService)
                 .addConnectionConfig(any());
@@ -82,7 +79,7 @@ public class ConnectionConfigControllerCreateTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {WRONG_ROLE}, resource = RESOURCE)
-    public void shouldReturnForbiddenWhenTryingToCreateWithWrongRole() throws Exception {
+    void shouldReturnForbiddenWhenTryingToCreateWithWrongRole() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         doThrow(KubernetesClientException.class).when(connectionConfigService)
                 .addConnectionConfig(any());
@@ -94,7 +91,7 @@ public class ConnectionConfigControllerCreateTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
-    public void shouldCreateConnectionConfig() throws Exception {
+    void shouldCreateConnectionConfig() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
 
         mvc.perform(post(CONFIG_ENDPOINT).contentType(APPLICATION_JSON_UTF8)

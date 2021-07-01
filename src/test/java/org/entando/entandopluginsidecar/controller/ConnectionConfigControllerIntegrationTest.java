@@ -13,8 +13,7 @@ import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,12 +25,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "keycloak.enabled=false")
-public class ConnectionConfigControllerIntegrationTest {
+class ConnectionConfigControllerIntegrationTest {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
@@ -44,7 +41,7 @@ public class ConnectionConfigControllerIntegrationTest {
     private KubernetesClient client;
 
     @Test
-    public void shouldAddConnectionConfig() throws Exception {
+    void shouldAddConnectionConfig() throws Exception {
         // Given
         TestHelper.createEntandoPlugin(client, entandoPluginName);
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
@@ -65,7 +62,7 @@ public class ConnectionConfigControllerIntegrationTest {
     }
 
     @Test
-    public void shouldReadConnectionConfigByName() throws Exception {
+    void shouldReadConnectionConfigByName() throws Exception {
         // Given
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto.getName());
@@ -83,7 +80,7 @@ public class ConnectionConfigControllerIntegrationTest {
     }
 
     @Test
-    public void shouldReadAllConnectionConfigs() throws Exception {
+    void shouldReadAllConnectionConfigs() throws Exception {
         // Given
         ConnectionConfigDto configDto1 = TestHelper.getRandomConnectionConfigDto();
         ConnectionConfigDto configDto2 = TestHelper.getRandomConnectionConfigDto();
@@ -106,7 +103,7 @@ public class ConnectionConfigControllerIntegrationTest {
     }
 
     @Test
-    public void shouldRemoveConnectionConfig() throws Exception {
+    void shouldRemoveConnectionConfig() throws Exception {
         // Given
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto.getName());
@@ -124,7 +121,7 @@ public class ConnectionConfigControllerIntegrationTest {
     }
 
     @Test
-    public void shouldEditConnectionConfig() throws Exception {
+    void shouldEditConnectionConfig() throws Exception {
         // Given
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createEntandoPluginWithConfigNames(client, entandoPluginName, configDto.getName());

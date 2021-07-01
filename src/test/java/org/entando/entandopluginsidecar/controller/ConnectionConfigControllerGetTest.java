@@ -16,19 +16,16 @@ import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.service.ConnectionConfigService;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.keycloak.testutils.WithMockKeycloakUser;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ConnectionConfigControllerGetTest {
+class ConnectionConfigControllerGetTest {
 
     @Autowired
     private MockMvc mvc;
@@ -37,7 +34,7 @@ public class ConnectionConfigControllerGetTest {
     private ConnectionConfigService connectionConfigService;
 
     @Test
-    public void shouldReturnUnauthorizedWhenTryingToGetWithoutCredentials() throws Exception {
+    void shouldReturnUnauthorizedWhenTryingToGetWithoutCredentials() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(configDto);
 
@@ -47,7 +44,7 @@ public class ConnectionConfigControllerGetTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {WRONG_ROLE}, resource = RESOURCE)
-    public void shouldReturnForbiddenWhenTryingToGetWithWrongRole() throws Exception {
+    void shouldReturnForbiddenWhenTryingToGetWithWrongRole() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(configDto);
 
@@ -57,7 +54,7 @@ public class ConnectionConfigControllerGetTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
-    public void shouldGetConnectionConfig() throws Exception {
+    void shouldGetConnectionConfig() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.getConnectionConfig(configDto.getName())).thenReturn(configDto);
 

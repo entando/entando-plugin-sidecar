@@ -20,19 +20,16 @@ import org.entando.entandopluginsidecar.service.ConnectionConfigService;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.keycloak.testutils.WithMockKeycloakUser;
 import org.entando.web.exception.NotFoundException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ConnectionConfigControllerEditTest {
+class ConnectionConfigControllerEditTest {
 
     @Autowired
     private MockMvc mvc;
@@ -44,7 +41,7 @@ public class ConnectionConfigControllerEditTest {
     private ConnectionConfigService connectionConfigService;
 
     @Test
-    public void shouldReturnUnauthorizedWhenTryingToEditWithoutCredentials() throws Exception {
+    void shouldReturnUnauthorizedWhenTryingToEditWithoutCredentials() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.editConnectionConfig(configDto)).thenReturn(configDto);
 
@@ -56,7 +53,7 @@ public class ConnectionConfigControllerEditTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {WRONG_ROLE}, resource = RESOURCE)
-    public void shouldReturnForbiddenWhenTryingToEditWithWrongRole() throws Exception {
+    void shouldReturnForbiddenWhenTryingToEditWithWrongRole() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.editConnectionConfig(configDto)).thenReturn(configDto);
 
@@ -68,7 +65,7 @@ public class ConnectionConfigControllerEditTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
-    public void shouldEditConnectionConfig() throws Exception {
+    void shouldEditConnectionConfig() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.editConnectionConfig(configDto)).thenReturn(configDto);
 
@@ -84,7 +81,7 @@ public class ConnectionConfigControllerEditTest {
 
     @Test
     @WithMockKeycloakUser(username = KEYCLOAK_USER, roles = {CONNECTION_CONFIG}, resource = RESOURCE)
-    public void shouldHandleNotFoundException() throws Exception {
+    void shouldHandleNotFoundException() throws Exception {
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         when(connectionConfigService.editConnectionConfig(configDto))
                 .thenThrow(new NotFoundException(ConnectionConfigService.ERROR_SECRET_NOT_FOUND));

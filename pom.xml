@@ -57,7 +57,7 @@
         <entando.k8s.operator.registry>docker.io</entando.k8s.operator.registry>
         <jib.registry>${entando.k8s.operator.registry}</jib.registry>
         <jib-maven-plugin.version>1.2.0</jib-maven-plugin.version>
-        <fabric8.version>4.1.3</fabric8.version>
+        <fabric8.version>4.10.3</fabric8.version>
         <pmd.version>6.18.0</pmd.version>
     </properties>
 
@@ -82,6 +82,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -117,9 +123,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.entando.kubernetes</groupId>
+            <groupId>org.entando</groupId>
             <artifactId>entando-k8s-custom-model</artifactId>
-            <version>6.0.65</version>
+            <version>6.1.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -136,6 +142,12 @@
             <groupId>org.entando</groupId>
             <artifactId>keycloak-connector-testutils</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

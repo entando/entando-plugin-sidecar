@@ -4,31 +4,30 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_NAME;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-public class ConnectionConfigServiceDeleteTest {
-
-    @Rule
-    public KubernetesServer server = new KubernetesServer(true, true);
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@EnableKubernetesMockClient(crud = true, https = false)
+class ConnectionConfigServiceDeleteTest {
 
     private ConnectionConfigService connectionConfigService;
 
-    private KubernetesClient client;
+    static KubernetesClient client;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        client = server.getClient();
         connectionConfigService = new ConnectionConfigService(client, ENTANDO_PLUGIN_NAME);
     }
 
     @Test
-    public void shouldRemoveConnectionConfig() throws Exception {
+    void shouldRemoveConnectionConfig() throws Exception {
         // Given
         ConnectionConfigDto configDto = TestHelper.getRandomConnectionConfigDto();
         TestHelper.createSecret(client, configDto);
