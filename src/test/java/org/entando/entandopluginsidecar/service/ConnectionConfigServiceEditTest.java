@@ -1,7 +1,6 @@
 package org.entando.entandopluginsidecar.service;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_CRD;
 import static org.entando.entandopluginsidecar.util.TestHelper.ENTANDO_PLUGIN_NAME;
 
 import com.google.common.collect.ImmutableMap;

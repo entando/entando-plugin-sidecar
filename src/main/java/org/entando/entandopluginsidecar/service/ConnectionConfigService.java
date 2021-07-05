@@ -36,12 +36,17 @@ public class ConnectionConfigService {
     public static final String ERROR_SECRET_NOT_FOUND = "org.entando.error.secret.notFound";
     public static final String ERROR_SECRET_ALREADY_EXISTS = "org.entando.error.secret.alreadyExists";
 
-    private final KubernetesClient client;
+    private KubernetesClient client;
     private final String entandoPluginName;
 
     public ConnectionConfigService(KubernetesClient client, @Value("${entando.plugin.name}") String entandoPluginName) {
         this.client = client;
         this.entandoPluginName = entandoPluginName;
+    }
+
+    // for testing
+    public void setClient(KubernetesClient client) {
+        this.client = client;
     }
 
     public void addConnectionConfig(ConnectionConfigDto connectionConfigDto) {

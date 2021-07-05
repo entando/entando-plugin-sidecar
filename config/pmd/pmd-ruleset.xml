@@ -19,7 +19,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
 
   <rule ref="category/java/codestyle.xml">
     <exclude name="TooManyStaticImports"/>
-    <exclude name="OnlyOneReturn"/>    
+    <exclude name="OnlyOneReturn"/>
     <exclude name="ShortVariable"/>
     <exclude name="ShortClassName"/>
     <exclude name="LongVariable"/>
@@ -27,6 +27,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
     <exclude name="LocalVariableCouldBeFinal"/>
     <exclude name="CommentDefaultAccessModifier"/>
     <exclude name="AtLeastOneConstructor"/>
+    <exclude name="DefaultPackage"/>
   </rule>
 
   <rule ref="category/java/codestyle.xml/ClassNamingConventions">

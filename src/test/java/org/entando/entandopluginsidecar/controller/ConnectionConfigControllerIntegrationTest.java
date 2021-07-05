@@ -6,13 +6,16 @@ import static org.entando.entandopluginsidecar.service.ConnectionConfigService.C
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Base64;
 import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.entando.entandopluginsidecar.dto.ConnectionConfigDto;
+import org.entando.entandopluginsidecar.service.ConnectionConfigService;
 import org.entando.entandopluginsidecar.util.TestHelper;
 import org.entando.entandopluginsidecar.util.YamlUtils;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "keycloak.enabled=false")
+@EnableKubernetesMockClient(crud = true, https = false)
 class ConnectionConfigControllerIntegrationTest {
 
     @Autowired
@@ -38,7 +42,14 @@ class ConnectionConfigControllerIntegrationTest {
     private String entandoPluginName;
 
     @Autowired
-    private KubernetesClient client;
+    private ConnectionConfigService connectionConfigService;
+
+    static KubernetesClient client;
+
+    @BeforeEach
+    public void beforeEach() {
+        connectionConfigService.setClient(client);
+    }
 
     @Test
     void shouldAddConnectionConfig() throws Exception {
@@ -54,8 +65,8 @@ class ConnectionConfigControllerIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Secret secret = client.secrets().withName(configDto.getName()).get();
         assertThat(secret).isNotNull();
-        byte[] decodedBytes = Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML));
-        ConnectionConfigDto fromYaml = YamlUtils.fromYaml(new String(decodedBytes));
+        String data = getConfigYamlValue(secret);
+        ConnectionConfigDto fromYaml = YamlUtils.fromYaml(data);
         assertThat(fromYaml).isEqualTo(configDto);
         EntandoPlugin entandoPlugin = TestHelper.getEntandoPlugin(client, entandoPluginName);
         assertThat(entandoPlugin.getSpec().getConnectionConfigNames()).contains(configDto.getName());
@@ -139,8 +150,18 @@ class ConnectionConfigControllerIntegrationTest {
         assertThat(response.getBody()).isEqualTo(configDto);
         Secret secret = client.secrets().withName(configDto.getName()).get();
         assertThat(secret).isNotNull();
-        byte[] decodedBytes = Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML));
-        ConnectionConfigDto fromYaml = YamlUtils.fromYaml(new String(decodedBytes));
+        String data = getConfigYamlValue(secret);
+        ConnectionConfigDto fromYaml = YamlUtils.fromYaml(data);
         assertThat(fromYaml).isEqualTo(configDto);
+    }
+
+    private String getConfigYamlValue(Secret secret) {
+        String data;
+        if (secret.getData() == null) {
+            data = secret.getStringData().get(CONFIG_YAML);
+        } else {
+            data = new String(Base64.getDecoder().decode(secret.getData().get(CONFIG_YAML)));
+        }
+        return data;
     }
 }
